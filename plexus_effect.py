@@ -8,14 +8,15 @@ os.environ['SDL_VIDEO_CENTERED'] = '1'
 pygame.init()
 
 info = pygame.display.Info()
-SCREEN_WIDTH, SCREEN_HEIGHT = info.current_w,info.current_h
+FPS = 60
+SCREEN_WIDTH, SCREEN_HEIGHT = info.current_w, info.current_h
+MOVE_SPEED = 0.8
+MAX_DISTANCE = 200
 
+# Note: fullscreen still not appear in app window.
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 clock = pygame.time.Clock()
 
-FPS = 60
-MOVE_SPEED = 0.8
-MAX_DISTANCE = 200
 
 class Circle:
     def __init__(self, quantity):
