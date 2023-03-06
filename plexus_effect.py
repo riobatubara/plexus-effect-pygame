@@ -4,20 +4,31 @@ from math import sqrt
 import colorsys
 import pygame
 
+# Set the position of the window to be centered on the screen
 os.environ['SDL_VIDEO_CENTERED'] = '1'
+
+# Initialize pygame
 pygame.init()
 
+# Get the current display information
 info = pygame.display.Info()
+
+# Set the frames per second and screen size
 FPS = 60
 SCREEN_WIDTH, SCREEN_HEIGHT = info.current_w, info.current_h
+
+# Set the speed at which the circles move and the maximum distance \
+# at which they can connect
 MOVE_SPEED = 0.8
 MAX_DISTANCE = 200
 
-# Note: fullscreen still not appear in app window.
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+# Set the screen to fullscreen and initialize the clock
+screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 clock = pygame.time.Clock()
 
-
+'''
+Define a class to create and manage the circles
+'''
 class Circle:
     def __init__(self, quantity):
         self.quantity = quantity
@@ -25,66 +36,72 @@ class Circle:
         self.velocity = [MOVE_SPEED, MOVE_SPEED]
         self.create_circles()
 
+    '''
+    Create the circles with random positions and velocities
+    '''
     def create_circles(self):
         for _ in range(self.quantity):
-            self.x = randint(0, SCREEN_WIDTH)
-            self.y = randint(0, SCREEN_HEIGHT)
-            self.velocity_x = uniform(-self.velocity[0], self.velocity[0])
-            self.velocity_y = uniform(-self.velocity[1], self.velocity[1])
-            self.position = (self.x, self.y, self.velocity_x, self.velocity_y)
-            self.circles.append(self.position)
+            x = randint(0, SCREEN_WIDTH)
+            y = randint(0, SCREEN_HEIGHT)
+            velocity_x = uniform(-self.velocity[0], self.velocity[0])
+            velocity_y = uniform(-self.velocity[1], self.velocity[1])
+            position = (x, y, velocity_x, velocity_y)
+            self.circles.append(position)
 
+    '''
+    Update the position of each circle based on its velocity
+    '''
     def update(self):
-        self.circles_moved = []
+        for i in range(self.quantity):
+            x, y, velocity_x, velocity_y = self.circles[i]
+            x += velocity_x
+            y += velocity_y
 
-        for i in self.circles:
-            self.x = i[0]
-            self.y = i[1]
+            # If the circle hits a screen edge, reverse its velocity
+            if x >= SCREEN_WIDTH or x <= 0:
+                velocity_x *= -1
 
-            self.velocity_x = i[2]
-            self.velocity_y = i[3]
+            if y >= SCREEN_HEIGHT or y <= 0:
+                velocity_y *= -1
 
-            self.x += self.velocity_x
-            self.y += self.velocity_y
+            self.circles[i] = (x, y, velocity_x, velocity_y)
 
-            if self.x >= SCREEN_WIDTH or self.x <= 0:
-                self.velocity_x *= -1
-
-            if self.y >= SCREEN_HEIGHT or self.y <= 0:
-                self.velocity_y *= -1
-
-            self.position = (self.x, self.y, self.velocity_x, self.velocity_y)
-            self.circles_moved.append(self.position)
-            self.circles = self.circles_moved
-
+    '''
+    Find all pairs of circles within the maximum distance
+    and return their positions as line segments
+    '''
     def connect_circles(self):
-        self.lines = []
-        for point1 in range(self.quantity - 1):
-            for point2 in range(point1 + 1, self.quantity):
-                self.lines.append([self.circles[point1][:2], self.circles[point2][:2]])
+        return [((circle1[0], circle1[1]), (circle2[0], circle2[1]))
+                for i, circle1 in enumerate(self.circles)
+                for _, circle2 in enumerate(self.circles[i+1:])]
 
-        return self.lines
-
-
-# Rendering colors by distance
+'''
+Define a function to generate colors
+based on the distance between circles
+'''
 def color(distance, max_distance, h, s, v):
-    h_max, s_max, v_max = tuple(round(i * 255) for i in colorsys.hsv_to_rgb(h, s, v))
-    r = int((max_distance - distance) * h_max / max_distance)
-    g = int((max_distance - distance) * s_max / max_distance)
-    b = int((max_distance - distance) * v_max / max_distance)
+    # Convert the input hue to an RGB value
+    r, g, b = colorsys.hsv_to_rgb(h, s, v)
+    # Adjust the RGB values based on the distance between the circles
+    r, g, b = tuple(round((max_distance - distance) * i * 255 / max_distance) for i in (r, g, b))
     return r, g, b
 
-
-# The HSV converting to RGB function
+'''
+Define a function to convert HSV colors to RGB colors
+'''
 def hsv2rgb(h, s, v):
     return tuple(round(i * 255) for i in colorsys.hsv_to_rgb(h, s, v))
 
-# Initiate object
+# Create the circles object
 circles = Circle(100)
 
+'''
+Define the main function that runs the animation
+'''
 def plexus():
     print(info)
 
+    # Initialize the hue and pause variables
     hue = 0
     paused = False
     running = True
