@@ -86,9 +86,8 @@ def color(distance, max_distance, h, s, v):
     r, g, b = tuple(round((max_distance - distance) * i * 255 / max_distance) for i in (r, g, b))
     return r, g, b
 
-'''
-Define a function to convert HSV colors to RGB colors
-'''
+
+# Define a function to convert HSV colors to RGB colors
 def hsv2rgb(h, s, v):
     return tuple(round(i * 255) for i in colorsys.hsv_to_rgb(h, s, v))
 
@@ -106,41 +105,61 @@ def plexus():
     paused = False
     running = True
     while running:
+        # Set FPS and window caption
         clock.tick(FPS)
         pygame.display.set_caption(f"FPS: {clock.get_fps():.2f}")
 
+        # Fill the screen with black
         screen.fill((0, 0, 0))
 
+        # Convert hue to RGB color for connections
         r, g, b = hsv2rgb(hue, 1, 1)
 
+        # Loop through all the connections in the connect_circles
         for i in circles.connect_circles():
+            # Get start and end positions of the connection
             start_position = i[0]
             end_position = i[1]
+
+            # Calculate distance between start and end positions
             distance = sqrt((start_position[0] - end_position[0])
                 ** 2 + (start_position[1] - end_position[1]) ** 2)
 
+            # Check if distance is less than maximum distance
             if distance < MAX_DISTANCE:
+                # Calculate color of connection based on distance and hue
                 r, g, b = color(distance, MAX_DISTANCE, hue, 1, 1)
+
+                # Draw the line connecting the circles
                 pygame.draw.line(screen, (r, g, b), start_pos=i[0], end_pos=i[1], width=2)
 
+        # Loop through all the circles.circles
         for i in circles.circles:
+            # Draw the circle on the screen
             pygame.draw.circle(screen, (r, g, b), center=i[:2], radius=3)
 
+        # Update hue and circles.update
         hue += 0.001
         if hue >= 1.0:
             hue = 0
 
         circles.update()
 
+        # If not paused, update the screen
         if not paused:
             pygame.display.update()
 
+        # Check for user input events
         for event in pygame.event.get():
+            # If the user closes the window, stop the program
             if event.type == pygame.QUIT:
                 running = False
+            # If the user presses the escape key, stop the program
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     running = False
+
+                # If the user presses the space key, toggle paused state
                 if event.key == pygame.K_SPACE:
                     paused = not paused
 
